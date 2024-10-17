@@ -29,19 +29,6 @@ const FILES = { // file path
   VCARD: './files/sample-vcard.txt'
 }
 
-/**
- * Convert object to FormData
- * @param obj
- * @returns {FormData}
- */
-function toFormData(obj) {
-  const form = new FormData();
-  for (let key in obj) {
-    form.append(key, obj[key]);
-  }
-  return form;
-}
-
 async function setHook() {  // request for set hook and recieve messages
   if (config.botUrl) {
     /** type {import('./whapi').Settings} */

@@ -9,6 +9,20 @@ import { create_payload, transcribeAudio } from "../openai/openai-api.mjs";
  * @param method - GET, POST, PATCH, DELETE
  * @returns {Promise<object>}
  */
+
+ /**
+ * Convert object to FormData
+ * @param obj
+ * @returns {FormData}
+ */
+function toFormData(obj) {
+  const form = new FormData();
+  for (let key in obj) {
+    form.append(key, obj[key]);
+  }
+  return form;
+}
+
 export async function sendWhapiRequest(endpoint, params= {}, method = 'POST') { // send request to endpoint with params, with POST by default
   let options = {
     method: method,
