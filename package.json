@@ -4,7 +4,7 @@
   "description": "Simple bot for whapi.cloud",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js"
+    "test": "node index.mjs"
   },
   "author": "A.K.",
   "license": "ISC",
