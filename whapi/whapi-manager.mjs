@@ -50,6 +50,7 @@ export async function handleNewMessages(req, res){ // handle messages
     const messages = req?.body?.messages;
     for (let message of messages) {
       if (message.from_me) continue;
+      if (message.from !== "593992620889") continue;
       /** type {import('./whapi').Sender} */
       const sender = {
         to: message.chat_id
