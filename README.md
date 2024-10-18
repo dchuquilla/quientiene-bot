@@ -1,17 +1,65 @@
-# Free WhatsApp NodeJS Bot (Whapi.Cloud WhatsApp API)
-This example of the WhatsApp bot implementation touches in detail on the most frequently used functionality: send message, send file, create group, send message to WhatsApp Group. This will allow you to adapt WhatsApp API and source code to your tasks and needs, or take it as a basis for creating any other integration.
-In the source code of the bot you will find the following functionality:
-<ul>
-  <li class="d-flex">Send regular text message;</li>
-  <li class="d-flex">Send media: image / file / video;</li>
-  <li class="d-flex">Send contact (vCard);</li>
-  <li class="d-flex">Send product;</li>
-  <li class="d-flex">Create new group, send an invitation and send message to the group;</li>
-  <li class="d-flex">Receive and reading incoming messages;</li>
-  <li class="d-flex">Respond to an unfamiliar command, this could be an instruction or your welcome message;</li>
-</ul>
+# WhatsApp NodeJS Bot (Whapi.Cloud WhatsApp API)
+# WhatsApp Chatbot
 
-You will be able to use our source code in your project, easily modifying and supplementing the script's functionality. Based on the code, you can create your chatbot or any integration. Easily integrate it into existing workflows, continuing to use WhatsApp as usual!
+This example of the WhatsApp bot implementation covers the most frequently used functionalities: sending messages, voice and audio messages, it also implements
+openAI chat gpt integration to interact with the user.
 
-### Step-by-step instructions on how to set up and run this chatbot: https://whapi.cloud/setting-up-chatbot-whatsapp-nodejs 
-We'll talk in detail about how to test the bot on a local, which servers to use, some tips and the main causes of popular failures.
+## Features
+
+In the source code of the bot, you will find the following functionalities:
+- Receive and read  regular text messages
+- Receive and read  voice and audio messages
+- Respond to unfamiliar commands, which could be instructions or welcome messages
+
+## Setup Instructions
+
+### Step-by-step instructions on how to set up and run this chatbot: [Setting up Chatbot WhatsApp Node.js](https://whapi.cloud/setting-up-chatbot-whatsapp-nodejs)
+
+We'll talk in detail about how to test the bot locally, which servers to use, some tips, and the main causes of popular failures.
+
+## Example `.env` File
+
+```env
+OPENAI_API_KEY=your-openai-api-key
+```
+
+## Example `config.js` File
+
+```javascript
+module.exports = {
+  // API endpoint URL
+  apiUrl: "https://gate.whapi.cloud/",
+  // API token from your channel
+  token: "YOUR-CHANNEL-TOKEN",
+  // The ID of the group to which we will send the message. Use to find out the ID: https://whapi.readme.io/reference/getgroups
+  group: '120363166759645996033@g.us',
+  // The ID of the product we will send for the example. Create a product in your WhatsApp and find out the product ID: https://whapi.readme.io/reference/getproducts
+  product: '6559353560856703',
+  // Bot`s URL (for static file). Webhook Link to your server. At ( {server link}/hook ), when POST is requested, processing occurs
+  botUrl: "https://y0ur-ngr0k-url.ngrok-free.app/hook",
+  // Bot's Port (for hook handler). Don't use 443 port.
+  port: "8081"
+}
+```
+
+You can modify these configurations according to your requirements.
+
+## Running Locally
+
+To run the project locally, follow these steps:
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Create a `.env` file in the root directory and add your configurations as shown in the example above.
+
+3. Create a `config.js` file in the root directory and add your configurations as shown in the example above.
+
+4. Run the tests:
+   ```bash
+   npm test
+   ```
+
+This will execute the tests and ensure that your setup is correct.
