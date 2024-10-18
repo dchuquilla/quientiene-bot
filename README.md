@@ -55,9 +55,11 @@ To run the project locally, follow these steps:
 
 2. Create a `.env` file in the root directory and add your configurations as shown in the example above.
 
-3. Create a `config.js` file in the root directory and add your configurations as shown in the example above.
+3. Create the same `OPENAI_API_KEY` in your environment variables.
 
-4. Run the tests:
+4. Create a `config.js` file in the root directory and add your configurations as shown in the example above.
+
+5. Run the tests:
    ```bash
    npm test
    ```
