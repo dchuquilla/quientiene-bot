@@ -47,13 +47,16 @@ async function setHook() {  // request for set hook and recieve messages
   }
 }
 
-
 // Create a new instance of express
 const app = express();
 app.use(bodyParser.json());
 
 app.get('/', function (req, res) {
   res.send('Bot is running');
+});
+
+app.get('/owner/:owner_id/request/:id', (req, res) => {
+  res.send('Owner id: ' + req.params.owner_id + " | " + 'Request id: ' + req.params.id);
 });
 
 app.post('/hook/messages', handleNewMessages); // route for get messages
