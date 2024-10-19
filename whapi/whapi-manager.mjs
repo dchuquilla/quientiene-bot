@@ -2,6 +2,8 @@
 import fetch from "node-fetch";
 import config from "../config.js";
 import { create_payload, transcribeAudio } from "../openai/openai-api.mjs";
+import { createReplacementRequest } from "../firebase/fb-replacement-requests.mjs";
+
 /**
  * Send request to Whapi.Cloud
  * @param endpoint - endpoint path
@@ -56,45 +58,24 @@ export async function handleNewMessages(req, res){ // handle messages
         to: message.chat_id
       }
       let endpoint = 'messages/text';
+      let audio_link = ""
+      let transcription_text = "";
 
       console.log('Message:', message);
+      let payload = null;
       if (["audio", "voice"].includes(message["type"])) {
-        // TODO: Sent audio to openAI to process replacement request.
-        // For now, just send a text message.
-
         sender.body = '🧑‍💼 Recibimos tu audio, lo estamos procesando...\n';
         if (message["type"] === "voice") {
-          transcribeAudio(message["voice"]["link"], message["voice"]["id"]);
+          audio_link = message.voice?.link
+          transcription_text = await transcribeAudio(audio_link, message.voice?.id);
         } else {
-          transcribeAudio(message["audio"]["link"], message["audio"]["id"]);
+          audio_link = message.audio?.link
+          transcription_text = await transcribeAudio(audio_link, message.audio?.id);
         }
+        payload = await create_payload(transcription_text)
       } else if (message["type"] === "text") {
-        const text = message.text?.body?.trim();
-        console.log("Processing Text: ", text)
-        const payload = await create_payload(text);
-        console.log("Payload 2: ", payload)
-
-        switch (payload.message) {
-          case "greeting": {
-            sender.body = '👋 Hola buen día.\n\n' +
-              '🧑‍🔧 Por favor dime que repuesto estás buscando!  \n\n' +
-              '🚗 Recuerda mencionar marca, modelo y año del vehículo. \n\n' +
-              '🗣️/💬 Puedes enviar audios o textos.';
-            break;
-          }
-          case "not_replacement_request": {
-            sender.body = '😔 No se reconoce una solicitud de repuesto en tu mensaje, por favor intenta nuevamente';
-            break;
-          }
-          case "error_create_payload": {
-            sender.body = '😔 Ocurrió un error, por favor intenta nuevamente.'
-            break;
-          }
-          default: {
-            sender.body = 'Solicitud recibida, estamos buscando el repuesto para ti. Por favor espera mientras la red de proveedores preparan una cotización...';
-          }
-        }
-
+        transcription_text = message.text?.body?.trim();
+        payload = await create_payload(transcription_text);
       } else {
         // let command = Object.keys(COMMANDS)[message.text?.body?.trim() - 1];
         // command = command || message.text?.body?.toUpperCase();
@@ -162,6 +143,40 @@ export async function handleNewMessages(req, res){ // handle messages
           // }
         // }
         continue;
+      }
+      console.log('Payload:', payload);
+      switch (payload.message) {
+        case "greeting": {
+          sender.body = '👋 Hola buen día.\n\n' +
+            '🧑‍🔧 Por favor dime que repuesto estás buscando!  \n\n' +
+            '🚗 Recuerda mencionar marca, modelo y año del vehículo. \n\n' +
+            '🗣️/💬 Puedes enviar audios o textos.';
+          break;
+        }
+        case "not_replacement_request": {
+          sender.body = '😔 No se reconoce una solicitud de repuesto en tu mensaje, por favor intenta nuevamente';
+          break;
+        }
+        case "error_create_payload": {
+          sender.body = '😔 Ocurrió un error, por favor intenta nuevamente.'
+          console.log('Error creating payload for message:', {"chat_id": message.chat_id ,"text": text});
+          break;
+        }
+        case "accepted": {
+          sender.body = '🙋 Solicitud recibida, estamos buscando el repuesto para ti. Por favor espera mientras la red de proveedores prepara las cotizaciones...';
+          const data = {
+            audio: audio_link,
+            transcription: transcription_text,
+            replacement: payload.request.replacement,
+            brand: payload.request.brand,
+            model: payload.request.model,
+            year: payload.request.year,
+            chat_id: message.chat_id,
+            country: 'Ecuador',
+            city: 'Quito'
+          }
+          await createReplacementRequest(data);
+        }
       }
 
       await sendWhapiRequest(endpoint, sender); // send request
