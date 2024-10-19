@@ -24,7 +24,7 @@ export async function createReplacementRequest(data) {
     data.status = constants.request_status.NEW;
 
     const docRef = await addDoc(collection(fb_db, "replacement-requests"), data);
-    console.log("Document written with ID: ", docRef.id);
+    return docRef.id;
   } catch (e) {
     console.error("Error saving request: ", e);
   }
