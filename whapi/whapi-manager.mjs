@@ -205,19 +205,17 @@ export async function handleNewMessages(req, res){ // handle messages
           sender.type = 'button';
           sender.header = {text: `🚗 Solicitud de repuesto No. *${replacement_request_id}*`};
           sender.body = {text: '🙋 Solicitud recibida, estamos buscando el repuesto para ti.'};
-          sender.footer = {text: '✅ Algunas empresas requieren información adicional:'};
+          sender.footer = {text: '✅ Revisa el estado de tu solicitud en el siguiente enlace:'};
           sender.action = {buttons: [
             {
-              type: 'quick_reply',
-              title: '🔍 Agregar número de chasis.',
-              id: `${replacement_request_id}:chasis`
-            },
-            {
-              type: 'quick_reply',
-              title: '📸 Enviar fotografía de la parte.',
-              id: `${replacement_request_id}:picture`
+              type: 'url',
+              title: '📸 Ir a la app.',
+              id: `${replacement_request_id}:url`,
+              url: `${config.appUrl}/owner/${message.from}/request/${replacement_request_id}`
             }
-          ]}
+          ]
+          }
+          break;
         }
       }
 
