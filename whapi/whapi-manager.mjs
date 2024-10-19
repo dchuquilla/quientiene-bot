@@ -68,6 +68,8 @@ export async function handleNewMessages(req, res){ // handle messages
       console.log('Message:', message);
       // Handle message type
       if (["audio", "voice"].includes(message["type"])) { // if message is audio or voice
+        sender.body = '🔊 Recibí tu mensaje de voz, por favor espera un momento mientras lo transcribo.';
+        sendWhapiRequest(endpoint, sender); // send request
         if (message["type"] === "voice") { // if message is voice
           audio_link = message.voice?.link
           transcription_text = await transcribeAudio(audio_link, message.voice?.id);
@@ -79,6 +81,21 @@ export async function handleNewMessages(req, res){ // handle messages
       } else if (message["type"] === "text") { // if message is text
         transcription_text = message.text?.body?.trim();
         payload = await create_payload(transcription_text);
+      } else if (message["type"] === "reply" && message.reply.type === "buttons_reply") { // if message is a reply
+        console.log('Reply:', message.reply);
+        const reply_id = message.reply.buttons_reply.id.split(':');
+        console.log('Reply type:', reply_id[2]);
+
+        if (reply_id[2] === "chasis") {
+          sender.body = '🔍 Por favor ingresa los 6 primeros dígitos del número de chasis del vehículo.';
+        } else if (reply_id[2] === "picture") {
+          sender.body = '📸 Por favor envía una fotografía de la parte del vehículo que estás buscando.';
+        } else {
+          sender.body = '😔 No se reconoce una solicitud de repuesto en tu mensaje, por favor intenta nuevamente';
+        }
+        console.log('sender:', sender);
+        await sendWhapiRequest(endpoint, sender); // send request
+        continue;
       } else { // if message is not audio, voice or text
         // let command = Object.keys(COMMANDS)[message.text?.body?.trim() - 1];
         // command = command || message.text?.body?.toUpperCase();
@@ -182,7 +199,6 @@ export async function handleNewMessages(req, res){ // handle messages
 
           // Create replacement request and serve to firebase
           const replacement_request_id = await createReplacementRequest(data);
-          console.log("Replacement request ID: ", replacement_request_id);
 
           // Send response with interactive buttons
           endpoint = 'messages/interactive';
