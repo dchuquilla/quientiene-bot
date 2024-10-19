@@ -51,32 +51,35 @@ export async function handleNewMessages(req, res){ // handle messages
     /** type {import('./whapi').Message[]} */
     const messages = req?.body?.messages;
     for (let message of messages) {
-      if (message.from_me) continue;
-      if (message.from !== "593992620889") continue;
+      if (message.from_me) continue; // Skip messages from the bot
+      if (message.from !== "593992620889") continue; // Only respond to messages from this number
+
       /** type {import('./whapi').Sender} */
       const sender = {
         to: message.chat_id
       }
+
+      // Local scope variables
       let endpoint = 'messages/text';
       let audio_link = ""
       let transcription_text = "";
+      let payload = null;
 
       console.log('Message:', message);
-      let payload = null;
-      if (["audio", "voice"].includes(message["type"])) {
-        sender.body = '🧑‍💼 Recibimos tu audio, lo estamos procesando...\n';
-        if (message["type"] === "voice") {
+      // Handle message type
+      if (["audio", "voice"].includes(message["type"])) { // if message is audio or voice
+        if (message["type"] === "voice") { // if message is voice
           audio_link = message.voice?.link
           transcription_text = await transcribeAudio(audio_link, message.voice?.id);
-        } else {
+        } else { // if message is audio
           audio_link = message.audio?.link
           transcription_text = await transcribeAudio(audio_link, message.audio?.id);
         }
         payload = await create_payload(transcription_text)
-      } else if (message["type"] === "text") {
+      } else if (message["type"] === "text") { // if message is text
         transcription_text = message.text?.body?.trim();
         payload = await create_payload(transcription_text);
-      } else {
+      } else { // if message is not audio, voice or text
         // let command = Object.keys(COMMANDS)[message.text?.body?.trim() - 1];
         // command = command || message.text?.body?.toUpperCase();
 
@@ -144,7 +147,9 @@ export async function handleNewMessages(req, res){ // handle messages
         // }
         continue;
       }
+
       console.log('Payload:', payload);
+      // Handle payload to respond
       switch (payload.message) {
         case "greeting": {
           sender.body = '👋 Hola buen día.\n\n' +
@@ -163,7 +168,6 @@ export async function handleNewMessages(req, res){ // handle messages
           break;
         }
         case "accepted": {
-          sender.body = '🙋 Solicitud recibida, estamos buscando el repuesto para ti. Por favor espera mientras la red de proveedores prepara las cotizaciones...';
           const data = {
             audio: audio_link,
             transcription: transcription_text,
@@ -175,10 +179,33 @@ export async function handleNewMessages(req, res){ // handle messages
             country: 'Ecuador',
             city: 'Quito'
           }
-          await createReplacementRequest(data);
+
+          // Create replacement request and serve to firebase
+          const replacement_request_id = await createReplacementRequest(data);
+          console.log("Replacement request ID: ", replacement_request_id);
+
+          // Send response with interactive buttons
+          endpoint = 'messages/interactive';
+          sender.type = 'button';
+          sender.header = {text: `🚗 Solicitud de repuesto No. *${replacement_request_id}*`};
+          sender.body = {text: '🙋 Solicitud recibida, estamos buscando el repuesto para ti.'};
+          sender.footer = {text: '✅ Algunas empresas requieren información adicional:'};
+          sender.action = {buttons: [
+            {
+              type: 'quick_reply',
+              title: '🔍 Agregar número de chasis.',
+              id: `${replacement_request_id}:chasis`
+            },
+            {
+              type: 'quick_reply',
+              title: '📸 Enviar fotografía de la parte.',
+              id: `${replacement_request_id}:picture`
+            }
+          ]}
         }
       }
 
+      // Send response
       await sendWhapiRequest(endpoint, sender); // send request
     }
     res.send('Ok');
