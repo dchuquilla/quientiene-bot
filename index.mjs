@@ -1,6 +1,5 @@
 import express from "express";
 import bodyParser from "body-parser";
-import FormData from "form-data";
 import config from "./config.js";
 import { sendWhapiRequest, handleNewMessages } from "./whapi/whapi-manager.mjs";
 
