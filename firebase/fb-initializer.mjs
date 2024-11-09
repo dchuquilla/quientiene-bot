@@ -29,8 +29,8 @@ export const setupSnapshotListener = (collectionName, callback) => {
       if (change.type === "added") {
         const docData = change.doc.data();
         const now = new Date();
-        const docTimestamp = docData.timestamp ? docData.timestamp.toDate() : now;
-        if (docTimestamp > now.setMinutes(now.getMinutes() - 5)) { // Adjust the time window as needed
+        const docTimestamp = docData.created_at ? docData.created_at.toDate() : now;
+        if (docTimestamp > now.setMinutes(now.getMinutes() - 2)) { // Adjust the time window as needed
           callback(docData);
         }
       }
