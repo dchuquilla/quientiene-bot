@@ -1,8 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore } from 'firebase/firestore/lite';
+import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
 import config from "../config.js";
-import constants from "../constants.js";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -21,3 +20,26 @@ const firebaseConfig = {
 // Initialize Firebase
 export const fb_app = initializeApp(firebaseConfig);
 export const fb_db = getFirestore(fb_app);
+
+export const setupSnapshotListener = (collectionName, callback) => {
+  const collectionRef = collection(fb_db, collectionName);
+  return onSnapshot(collectionRef, (snapshot) => {
+    console.log(`Received snapshot from ${collectionName}`);
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === "added") {
+        const docData = change.doc.data();
+        const now = new Date();
+        const docTimestamp = docData.timestamp ? docData.timestamp.toDate() : now;
+        if (docTimestamp > now.setMinutes(now.getMinutes() - 5)) { // Adjust the time window as needed
+          callback(docData);
+        }
+      }
+      if (change.type === "modified") {
+        console.log("Modified store: ", change.doc.data());
+      }
+      if (change.type === "removed") {
+        console.log("Removed store: ", change.doc.data());
+      }
+    });
+  });
+};
