@@ -2,6 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import config from "./config.js";
 import { sendWhapiRequest, handleNewMessages } from "./whapi/whapi-manager.mjs";
+import { setupSnapshotListener } from "./firebase/fb-initializer.mjs";
 
 process.on('unhandledRejection', err => {
   console.log(err)
@@ -64,6 +65,19 @@ app.post('/hook/messages', handleNewMessages); // route for get messages
 setHook().then(() => {
   const port = config.port || (config.botUrl.indexOf('https:') === 0 ? 443 : 80) // if port not set - set port 443 (if https) or 80 (if http)
   app.listen(port, function () {
+    setupSnapshotListener("stores", async (store) => {
+      // send message to the phone phone in store object
+      const endpoint = 'messages/text';
+      const phone = store.phone.replace(/\D/g, ''); // Remove non-numeric characters
+      const sender = {
+        to: `${phone}@s.whatsapp.net`,
+        body: `😊 La cuenta de *${store.name}* fue creada con éxito.`,
+      }
+      sender.body
+      // eslint-disable-next-line
+      await sendWhapiRequest(endpoint, sender);
+    });
+
     console.log(`Listening on port ${port}...`);
   });
 });
