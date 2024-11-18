@@ -1,4 +1,4 @@
 .env
-config.js
+config.mjs
 files/
 node_modules/

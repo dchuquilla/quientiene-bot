@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs } from 'firebase/firestore/lite';
+import { collection, addDoc } from 'firebase/firestore';
 import { fb_db } from "./fb-initializer.mjs";
 import constants from "../constants.js";
 

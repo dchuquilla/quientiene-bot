@@ -1,8 +1,9 @@
 import express from "express";
 import bodyParser from "body-parser";
-import config from "./config.js";
+import { config } from "./config.mjs";
 import { sendWhapiRequest, handleNewMessages } from "./whapi/whapi-manager.mjs";
 import StoresListener from "./listeners/stores-listener.mjs";
+import ReplacementRequestsListener from "./listeners/replacement-requests-listener.mjs";
 
 process.on('unhandledRejection', err => {
   console.log(err)
@@ -67,6 +68,8 @@ setHook().then(() => {
   app.listen(port, function () {
     // Enable firestore listeners
     StoresListener();
+    ReplacementRequestsListener();
+
     console.log(`Listening on port ${port}...`);
   });
 });
