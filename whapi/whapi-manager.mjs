@@ -1,6 +1,6 @@
 
 import fetch from "node-fetch";
-import config from "../config.js";
+import { config } from "../config.mjs";
 import { create_payload, transcribeAudio } from "../openai/openai-api.mjs";
 import { createReplacementRequest } from "../firebase/fb-replacement-requests.mjs";
 
@@ -41,7 +41,7 @@ export async function sendWhapiRequest(endpoint, params= {}, method = 'POST') { 
       options.body = params?.media ? toFormData(params) : JSON.stringify(params); // if in params media - transform to formData, else - json
   }
   const response = await fetch(url, options); // send request
-  let json = await response.json();
+  const json = await response.json();
   console.log('Whapi response:', JSON.stringify(json, null, 2));
   return json;
 }
@@ -201,20 +201,22 @@ export async function handleNewMessages(req, res){ // handle messages
           const replacement_request_id = await createReplacementRequest(data);
 
           // Send response with interactive buttons
-          endpoint = 'messages/interactive';
-          sender.type = 'button';
-          sender.header = {text: `🚗 Solicitud de repuesto No. *${replacement_request_id}*`};
-          sender.body = {text: '🙋 Solicitud recibida, estamos buscando el repuesto para ti.'};
-          sender.footer = {text: '✅ Revisa el estado de tu solicitud en el siguiente enlace:'};
-          sender.action = {buttons: [
-            {
-              type: 'url',
-              title: '📸 Ir a la app.',
-              id: `${replacement_request_id}:url`,
-              url: `${config.appUrl}/owner/${message.from}/request/${replacement_request_id}`
-            }
-          ]
-          }
+          // endpoint = 'messages/interactive';
+          // sender.type = 'button';
+          // sender.header = {text: `🚗 Solicitud de repuesto No. *${replacement_request_id}*`};
+          // sender.body = {text: '🙋 Solicitud recibida, estamos buscando el repuesto para ti.'};
+          // sender.footer = {text: '✅ Revisa el estado de tu solicitud en el siguiente enlace:'};
+          // sender.action = {buttons: [
+          //   {
+          //     type: 'url',
+          //     title: '📸 Ver mi solicitud',
+          //     id: `${replacement_request_id}:url`,
+          //     url: `${config.platformUrl}/replacement-requests/${replacement_request_id}`
+          //   }
+          // ]}
+
+          sender.body = '🙋 Solicitud recibida, estamos buscando el repuesto para ti. Revisa el estado de tu solicitud en el siguiente enlace ' + `${config.platformUrl}/replacement-requests/${replacement_request_id}`;
+
           break;
         }
       }
