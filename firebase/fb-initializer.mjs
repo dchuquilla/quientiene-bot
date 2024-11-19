@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, onSnapshot, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, onSnapshot, getDocs, getDoc, doc } from 'firebase/firestore';
 import { config } from "../config.mjs";
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -50,3 +50,12 @@ export const setupSnapshotListener = (collectionName, callback) => {
     });
   });
 };
+
+export const getReplacementRequest = async (id) => {
+  const replacementRequestsCollection = collection(fb_db, "replacement-requests");
+  const singleReplacementRequest = doc(replacementRequestsCollection, id);
+  const response = await getDoc(singleReplacementRequest);
+  const data = response.data();
+  console.log('Replacement request:', data);
+  return data;
+}
