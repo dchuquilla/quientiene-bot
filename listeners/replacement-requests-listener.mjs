@@ -1,6 +1,5 @@
 import { sendWhapiRequest } from "../whapi/whapi-manager.mjs";
-import { setupSnapshotListener } from "../firebase/fb-initializer.mjs";
-import { allStores } from "../firebase/fb-initializer.mjs";
+import { setupSnapshotListener, allStores } from "../firebase/fb-initializer.mjs";
 import { config } from "../config.mjs";
 
 export default function ReplacementRequestsListener() {
