@@ -127,7 +127,12 @@ export const getReplacementRequest = async (id) => {
 export const GetDocumentsByField = async (collectionName, fieldName, value) => {
   try {
     const collectionRef = collection(fb_db, collectionName);
-    const q = query(collectionRef, where(fieldName, "==", value));
+    let q;
+    if (Array.isArray(value)) {
+      q = query(collectionRef, where(fieldName, "in", value));
+    } else {
+      q = query(collectionRef, where(fieldName, "==", value));
+    }
     const querySnapshot = await getDocs(q);
     const documents = querySnapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
     console.log(`documents from ${collectionName}: ${JSON.stringify(documents)}`);
