@@ -193,6 +193,7 @@ export async function handleNewMessages(req, res){ // handle messages
             model: payload.request.model,
             year: payload.request.year,
             chat_id: message.chat_id,
+            phone: `+${message.from}`,
             country: 'Ecuador',
             city: 'Quito'
           }
