@@ -19,6 +19,6 @@
     "node-fetch": "^2.6.0",
     "openai": "^4.67.3",
     "readline-sync": "^1.4.10",
-    "vcard-creator": "^0.7.1"
+    "vcard-generator": "^0.0.7"
   }
 }
