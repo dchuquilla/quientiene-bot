@@ -28,6 +28,16 @@ export const allStores = async () => {
   return storesSnapshot.docs.map(doc => doc.data());
 }
 
+
+export const formatPhoneNumber = (phone) => {
+  const cleaned = ('' + phone).replace(/\D/g, '');
+  const match = cleaned.match(/^(\d{2})(\d{2})(\d{3})(\d{4})$/);
+  if (match) {
+  return `+${match[1]} ${match[2]} ${match[3]} ${match[4]}`;
+  }
+  return phone;
+};
+
 export const setupSnapshotListener = (collectionName, callback) => {
   const collectionRef = collection(fb_db, collectionName);
   return onSnapshot(collectionRef, (snapshot) => {
@@ -56,14 +66,6 @@ export const setupSnapshotListener = (collectionName, callback) => {
             const store = await GetDocumentById("stores", replacementProposal.store_id);
             const replacementRequest = await GetDocumentById("replacement-requests", replacementProposal.request_id);
             const sender = {};
-            const formatPhoneNumber = (phone) => {
-              const cleaned = ('' + phone).replace(/\D/g, '');
-              const match = cleaned.match(/^(\d{2})(\d{2})(\d{3})(\d{4})$/);
-              if (match) {
-              return `+${match[1]} ${match[2]} ${match[3]} ${match[4]}`;
-              }
-              return phone;
-            };
 
             const ownerVCard = `BEGIN:VCARD\nVERSION:3.0\nN:vehiculo;Propietario;del;;\nFN:Propietario del vehiculo\nitem1.TEL;waid=${replacementRequest.data.phone.replace(/\+/g, '')}:${formatPhoneNumber(replacementRequest.data.phone)}\nitem1.X-ABLabel:Celular\nEND:VCARD`;
 
