@@ -25,6 +25,11 @@ function toFormData(obj) {
   return form;
 }
 
+export const generateRandomString = (length: number) => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  return Array.from({ length }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
+};
+
 export async function sendWhapiRequest(endpoint, params= {}, method = 'POST') { // send request to endpoint with params, with POST by default
   let options = {
     method: method,
@@ -185,6 +190,7 @@ export async function handleNewMessages(req, res){ // handle messages
           break;
         }
         case "accepted": {
+          const detailsKey = generateRandomString(6);
           const data = {
             audio: audio_link,
             transcription: transcription_text,
@@ -194,6 +200,7 @@ export async function handleNewMessages(req, res){ // handle messages
             year: payload.request.year,
             chat_id: message.chat_id,
             phone: `+${message.from}`,
+            details_key: detailsKey,
             country: 'Ecuador',
             city: 'Quito'
           }
@@ -216,7 +223,7 @@ export async function handleNewMessages(req, res){ // handle messages
           //   }
           // ]}
 
-          sender.body = '🙋 Solicitud recibida, estamos buscando el repuesto para ti. Revisa el estado de tu solicitud en el siguiente enlace ' + `${config.platformUrl}/replacement-requests/${replacement_request_id}`;
+          sender.body = '🙋 Solicitud recibida, estamos buscando el repuesto para ti. Revisa el estado de tu solicitud en el siguiente enlace ' + `${config.platformUrl}/replacement-requests/${replacement_request_id}?detailsKey=${detailsKey}`;
 
           break;
         }
