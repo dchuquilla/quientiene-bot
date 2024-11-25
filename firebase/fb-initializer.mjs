@@ -88,7 +88,21 @@ export const setupSnapshotListener = (collectionName, callback) => {
             await sendWhapiRequest(c_endpoint, c_sender);
             break;
           case "replacement-requests":
-            console.log("Replacement request modified: ", change.doc.data());
+            if (data.status !== "completed") {
+              break;
+            }
+
+            const r_endpoint = 'messages/text';
+            const r_replacementRequest = data;
+            const r_sender = {};
+
+            // Send response with interactive buttons
+            r_sender.to = r_replacementRequest.chat_id;
+            r_sender.body = `🙋 Aprobó una cotización, en breve el almacén se contactará con usted`;
+
+            console.log("Sending message to owner: ", r_sender);
+            await sendWhapiRequest(r_endpoint, r_sender);
+
             break;
           default:
             break;
