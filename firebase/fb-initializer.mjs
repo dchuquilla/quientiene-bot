@@ -3,7 +3,6 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, getDocs, getDoc, doc, query, where } from 'firebase/firestore';
 import { config } from "../config.mjs";
 import { sendWhapiRequest } from "../whapi/whapi-manager.mjs";
-import vcard from 'vcard-generator';
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -54,39 +53,23 @@ export const setupSnapshotListener = (collectionName, callback) => {
             }
             const endpoint = 'messages/text';
             const replacementProposal = data;
-            const store = await GetDocumentsByField("stores", "email", replacementProposal.store_id);
-            const replacementRequest = await getReplacementRequest(replacementProposal.request_id);
+            const store = await GetDocumentById("stores", replacementProposal.store_id);
+            const replacementRequest = await GetDocumentById("replacement-requests", replacementProposal.request_id);
             const sender = {};
-            const ownerVCard = vcard.generate({
-              name: {
-                familyName: 'Propietario',
-                givenName: 'Vehculo',
-              },
-              formattedNames: [{
-                text: 'Propietario de veiculo',
-              }],
-              nicknames: [{
-                text: 'QuienTiene.com',
-              }],
-              phones: [{
-                type: 'work',
-                text: replacementRequest.phone,
-              }, {
-                text: replacementRequest.phone,
-              }, {
-                uri: `tel:${replacementRequest.phone}`,
-              }],
-              urls: [{
-                type: 'Solicitud',
-                uri: `${config.platformUrl}/replacement-requests/${replacementRequest.id}`,
-              }],
-              notes: [{
-                text: replacementRequest.transcription,
-              }],
-            });
+            const formatPhoneNumber = (phone) => {
+              const cleaned = ('' + phone).replace(/\D/g, '');
+              const match = cleaned.match(/^(\d{2})(\d{2})(\d{3})(\d{4})$/);
+              if (match) {
+              return `+${match[1]} ${match[2]} ${match[3]} ${match[4]}`;
+              }
+              return phone;
+            };
 
+            const ownerVCard = `BEGIN:VCARD\nVERSION:3.0\nN:vehiculo;Propietario;del;;\nFN:Propietario del vehiculo\nitem1.TEL;waid=${replacementRequest.data.phone.replace(/\+/g, '')}:${formatPhoneNumber(replacementRequest.data.phone)}\nitem1.X-ABLabel:Celular\nEND:VCARD`;
+
+            const storePhone = store.data.phone.replace(/\+/g, '');
             // Send response with interactive buttons
-            sender.to = `${store[0].phone}@s.whatsapp.net`;
+            sender.to = `${storePhone}@s.whatsapp.net`;
             sender.body = `🙋 Su cotización fue aceptada, ${config.platformUrl}/replacement-proposals/${change.doc.id}`;
 
             console.log("Sending message to store: ", sender);
@@ -94,11 +77,12 @@ export const setupSnapshotListener = (collectionName, callback) => {
 
             const c_endpoint = '/messages/contact';
             const c_sender = {
-              to: `${store.phone}@s.whatsapp.net`,
+              to: `${storePhone}@s.whatsapp.net`,
               name: "Propietario vehículo",
               vcard: ownerVCard,
               body: "Información de contacto."
             }
+            console.log("Sending message to store: ", c_sender);
             await sendWhapiRequest(c_endpoint, c_sender);
             break;
           case "replacement-requests":
@@ -120,7 +104,7 @@ export const getReplacementRequest = async (id) => {
   const singleReplacementRequest = doc(replacementRequestsCollection, id);
   const response = await getDoc(singleReplacementRequest);
   const data = response.data();
-  console.log('Replacement request:', data);
+  console.log('getReplacementRequest:', data);
   return data;
 }
 
@@ -140,5 +124,19 @@ export const GetDocumentsByField = async (collectionName, fieldName, value) => {
   } catch (error) {
     console.error(`Error in GetDocumentsByField: ${error}`);
     return [];
+  }
+};
+
+export const GetDocumentById = async (collectionName, id) => {
+  try {
+    const collectionRef = collection(fb_db, collectionName);
+    const documentRef = doc(collectionRef, id);
+    const response = await getDoc(documentRef);
+    const data = response.data();
+    console.log(`GetDocumentById ${collectionName}`, data);
+    return { data, id };
+  } catch (error) {
+    console.log(`Error in GetDocumentById: ${error}`);
+    return null;
   }
 };
