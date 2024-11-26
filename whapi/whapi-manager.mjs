@@ -25,7 +25,7 @@ function toFormData(obj) {
   return form;
 }
 
-export const generateRandomString = (length: number) => {
+export const generateRandomString = (length) => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   return Array.from({ length }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
 };
