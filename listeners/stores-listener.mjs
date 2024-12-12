@@ -8,7 +8,7 @@ export default function StoresListener() {
   const phone = store.phone.replace(/\D/g, ''); // Remove non-numeric characters
   const sender = {
     to: `${phone}@s.whatsapp.net`,
-    body: `😊 La cuenta de *${store.name}* fue creada con éxito.`,
+    body: `😊 La cuenta de *${store.name}* fue creada con éxito.\nsu ID de almacen es: *${store.id}*`,
   }
   sender.body
   // eslint-disable-next-line
