@@ -44,7 +44,7 @@ export const setupSnapshotListener = (collectionName, callback) => {
     console.log(`Received snapshot from ${collectionName}`);
     snapshot.docChanges().forEach(async (change) => {
       if (change.type === "added") {
-        const docData = change.doc.data();
+        const docData = {...change.doc.data(), id: change.doc.id};
         const now = new Date();
         const docTimestamp = docData.created_at ? docData.created_at.toDate() : now;
         if (docTimestamp > now.setMinutes(now.getMinutes() - 2)) { // Adjust the time window as needed
