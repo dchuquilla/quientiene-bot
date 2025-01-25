@@ -35,7 +35,7 @@ export async function transcribeAudio(url, audio_id) {
   return transcription.text;
 }
 
-export async function create_payload(text) {
+export async function createRequestPayload(text) {
   console.log("Creating payload for text: ", text)
   try {
     const payload = await new Promise((resolve, reject) => {
@@ -53,9 +53,48 @@ export async function create_payload(text) {
       ],
       }).then(resolve).catch(reject);
     });
-    return JSON.parse(payload.choices[0].message.content);
+    const requestPayload = JSON.parse(payload.choices[0].message.content);
+    return requestPayload
   } catch (error) {
     console.log("Error: ", error)
     return { message: "error_create_payload" }
   }
+}
+
+export async function searchReplacements(request) {
+  // Create query with OpenAI
+  const prompt = `Busca repuestos de autos en Quito, Ecuador.
+                  Repuesto: ${request.replacement}, Marca: ${request.brand}, Modelo: ${request.model}, Año: ${request.year}.
+                  Formato de salida: nombre, descripción, precio, empresa, URL.`;
+  const openaiResponse = await openai.createCompletion({
+    model: 'text-davinci-003',
+    prompt,
+    max_tokens: 50,
+  });
+
+  const query = openaiResponse.data.choices[0].text.trim();
+
+  // Use Google Custom Search API
+  const googleResponse = await axios.get(
+    `https://www.googleapis.com/customsearch/v1`,
+    {
+      params: {
+        key: process.env.GOOGLE_API_KEY,
+        cx: process.env.SEARCH_ENGINE_ID,
+        q: query,
+      },
+    }
+  );
+
+  // Process results
+  const results = googleResponse.data.items.map((item) => ({
+    nombre: item.title,
+    descripcion: item.snippet,
+    url: item.link,
+  }));
+
+  return res.json({
+    mensaje: 'Resultados encontrados:',
+    resultados: results,
+  });
 }

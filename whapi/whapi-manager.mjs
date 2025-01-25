@@ -1,7 +1,7 @@
 
 import fetch from "node-fetch";
 import { config } from "../config.mjs";
-import { create_payload, transcribeAudio } from "../openai/openai-api.mjs";
+import { createRequestPayload, transcribeAudio } from "../openai/openai-api.mjs";
 import { createReplacementRequest } from "../firebase/fb-replacement-requests.mjs";
 
 /**
@@ -82,10 +82,10 @@ export async function handleNewMessages(req, res){ // handle messages
           audio_link = message.audio?.link
           transcription_text = await transcribeAudio(audio_link, message.audio?.id);
         }
-        payload = await create_payload(transcription_text)
+        payload = await createRequestPayload(transcription_text)
       } else if (message["type"] === "text") { // if message is text
         transcription_text = message.text?.body?.trim();
-        payload = await create_payload(transcription_text);
+        payload = await createRequestPayload(transcription_text);
       } else if (message["type"] === "reply" && message.reply.type === "buttons_reply") { // if message is a reply
         console.log('Reply:', message.reply);
         const reply_id = message.reply.buttons_reply.id.split(':');
@@ -207,6 +207,7 @@ export async function handleNewMessages(req, res){ // handle messages
 
           // Create replacement request and serve to firebase
           const replacement_request_id = await createReplacementRequest(data);
+          const seatchResults = await searchReplacements(payload.request);
 
           // Send response with interactive buttons
           // endpoint = 'messages/interactive';
@@ -222,6 +223,8 @@ export async function handleNewMessages(req, res){ // handle messages
           //     url: `${config.platformUrl}/replacement-requests/${replacement_request_id}`
           //   }
           // ]}
+
+          console.log('Search results:', seatchResults);
 
           sender.body = '🙋 Solicitud recibida, estamos buscando el repuesto para ti. Revisa el estado de tu solicitud en el siguiente enlace ' + `${config.platformUrl}/replacement-requests/${replacement_request_id}?detailsKey=${detailsKey}`;
 
